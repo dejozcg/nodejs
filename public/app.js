@@ -1,6 +1,3 @@
-import { json } from "body-parser";
-import { stat } from "fs";
-
 /*
  * Frontend Logic for application
  *
