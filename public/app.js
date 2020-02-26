@@ -55,7 +55,7 @@ app.client.request = function (headers, path, method, queryStringObject, payload
 
   // If there is a current session token set, add that as a header
   if (app.config.sessionToken) {
-    xhr.setRequestHeader("token", app.config.sessionToken.id);
+    xhr.setRequestHeader("tokenid", app.config.sessionToken.tokenid);
   }
 
   // When the request comes back, handle the response
@@ -96,11 +96,11 @@ app.bindLogoutButton = function () {
 // Log the user out then redirect them
 app.logUserOut = function () {
   // Get the current token id
-  var tokenId = typeof (app.config.sessionToken.id) == 'string' ? app.config.sessionToken.id : false;
+  var tokenid = typeof (app.config.sessionToken.tokenid) == 'string' ? app.config.sessionToken.tokenid : false;
 
   // Send the current token to the tokens endpoint to delete it
   var queryStringObject = {
-    'id': tokenId
+    tokenid
   };
 
   app.client.request(undefined, 'api/tokens', 'DELETE', queryStringObject, undefined, function (statusCode, responsePayload) {
@@ -249,14 +249,14 @@ app.renewToken = function (callback) {
   if (currentToken) {
     // Update the token with a new expiration
     var payloads = {
-      'id': currentToken.id,
+      'tokenid': currentToken.tokenid,
       'extend': true
     };
     app.client.request(undefined, 'api/tokens', 'PUT', undefined, payloads, function (statusCode, responsePayload) {
       // Display an error on the form if needed
       if (statusCode == 200) {
         // Get the new token details
-        var queryStringObject = { 'id': currentToken.id };
+        var queryStringObject = { 'tokenid': currentToken.tokenid };
         app.client.request(undefined, 'api/tokens', 'GET', queryStringObject, undefined, function (statusCode, responsePayload) {
           // Display an error on the form if needed
           if (statusCode == 200) {
@@ -286,7 +286,7 @@ app.tokenRenewalLoop = function () {
         console.log("Token renewed successfully @ " + Date.now());
       }
     });
-  }, 1000 * 60);
+  }, 1000 * 60 *60);
 };
 
 // Init (bootstrapping)
