@@ -286,7 +286,7 @@ app.tokenRenewalLoop = function () {
         console.log("Token renewed successfully @ " + Date.now());
       }
     });
-  }, 1000 * 60 *60);
+  }, 1000 * 60 * 10);
 };
 
 // Init (bootstrapping)
