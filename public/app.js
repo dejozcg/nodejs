@@ -115,52 +115,67 @@ app.logUserOut = function () {
 // Bind the forms
 app.bindForms = function () {
   if (document.querySelector("form")) {
-    document.querySelector("form").addEventListener("submit", function (e) {
 
-      // Stop it from submitting
-      e.preventDefault();
-      var formId = this.id;
-      var path = this.action;
-      var method = this.method.toUpperCase();
+    var allForms = document.querySelector("form");
+    for (var i = 0; i < allForms.length; i++) {
+      allForms[i].addEventListener("submit", function (e) {
+        // Stop it from submitting
+        e.preventDefault();
+        var formId = this.id;
+        var path = this.action;
+        var method = this.method.toUpperCase();
 
-      // Hide the error message (if it's currently shown due to a previous error)
-      document.querySelector("#" + formId + " .formError").style.display = 'hidden';
+        // Hide the error message (if it's currently shown due to a previous error)
+        document.querySelector("#" + formId + " .formError").style.display = 'none';
 
-      // Turn the inputs into a payload
-      var payloads = {};
-      var elements = this.elements;
-      for (var i = 0; i < elements.length; i++) {
-        if (elements[i].type !== 'submit') {
-          var valueOfElement = elements[i].type == 'checkbox' ? elements[i].checked : elements[i].value;
-          payloads[elements[i].name] = valueOfElement;
+        // Hide the success message (if it's currently shown due to a previous error)
+        if (document.querySelector("#" + formId + " .formSuccess")) {
+          document.querySelector("#" + formId + " .formSuccess").style.display = 'none';
         }
-      }
 
-      // Call the API
-      app.client.request(undefined, path, method, undefined, payloads, function (statusCode, responsePayload) {
-        // Display an error on the form if needed
-        if (statusCode !== 200) {
-
-          if (statusCode == 403) {
-            // log the user out
-            app.logUserOut();
-
-          } else {
-            // Try to get the error from the api, or set a default error message
-            var error = typeof (responsePayload.Error) == 'string' ? responsePayload.Error : 'An error has occured, please try again';
-
-            // Set the formError field with the error text
-            document.querySelector("#" + formId + " .formError").innerHTML = error;
-
-            // Show (unhide) the form error field on the form
-            document.querySelector("#" + formId + " .formError").style.display = 'block';
+        // Turn the inputs into a payload
+        var payloads = {};
+        var elements = this.elements;
+        console.log("ELEMENTS JE: " + elements);
+        for (var i = 0; i < elements.length; i++) {
+          if (elements[i].type !== 'submit') {
+            var valueOfElement = elements[i].type == 'checkbox' ? elements[i].checked : elements[i].value;
+            if (elements[i].name == '_method') {
+              method = valueOfElement;
+            } else {
+              payloads[elements[i].name] = valueOfElement;
+            }
           }
-        } else {
-          // If successful, send to form response processor
-          app.formResponseProcessor(formId, payloads, responsePayload);
         }
+
+        // Call the API
+        app.client.request(undefined, path, method, undefined, payloads, function (statusCode, responsePayload) {
+          // Display an error on the form if needed
+          if (statusCode !== 200) {
+
+            if (statusCode == 403) {
+              // log the user out
+              app.logUserOut();
+
+            } else {
+              // Try to get the error from the api, or set a default error message
+              var error = typeof (responsePayload.Error) == 'string' ? responsePayload.Error : 'An error has occured, please try again';
+
+              // Set the formError field with the error text
+              document.querySelector("#" + formId + " .formError").innerHTML = error;
+
+              // Show (unhide) the form error field on the form
+              document.querySelector("#" + formId + " .formError").style.display = 'block';
+            }
+          } else {
+            // If successful, send to form response processor
+            app.formResponseProcessor(formId, payloads, responsePayload);
+          }
+        });
+
+
       });
-    });
+    }
   }
 };
 
