@@ -116,7 +116,9 @@ app.logUserOut = function () {
 app.bindForms = function () {
   if (document.querySelector("form")) {
 
-    var allForms = document.querySelector("form");
+    var allForms = document.querySelectorAll("form");
+    console.log(allForms);
+    console.log(allForms.length);
     for (var i = 0; i < allForms.length; i++) {
       allForms[i].addEventListener("submit", function (e) {
         // Stop it from submitting
@@ -136,8 +138,9 @@ app.bindForms = function () {
         // Turn the inputs into a payload
         var payloads = {};
         var elements = this.elements;
-        console.log("ELEMENTS JE: " + elements);
+        //console.log("ELEMENTS JE: " + elements);
         for (var i = 0; i < elements.length; i++) {
+          //console.log(elements[i]);
           if (elements[i].type !== 'submit') {
             var valueOfElement = elements[i].type == 'checkbox' ? elements[i].checked : elements[i].value;
             if (elements[i].name == '_method') {
@@ -211,6 +214,12 @@ app.formResponseProcessor = function (formId, requestPayload, responsePayload) {
     app.setSessionToken(responsePayload);
     window.location = '/checks/all';
   }
+
+  // If forms saved successfully and they have success messages, show them
+  var formWithSuccessMessages = ['accountEdit1', 'accountEdit2'];
+  if (formWithSuccessMessages.indexOf(formId) > -1) {
+    document.querySelector('#' + formId + " .formSuccess").style.display = 'block';
+  }
 };
 
 // Get the session token from localstorage and set it in the app.config object
@@ -256,8 +265,6 @@ app.setSessionToken = function (token) {
   }
 };
 
-
-
 // Renew the token
 app.renewToken = function (callback) {
   var currentToken = typeof (app.config.sessionToken) == 'object' ? app.config.sessionToken : false;
@@ -293,6 +300,49 @@ app.renewToken = function (callback) {
   }
 };
 
+// Load data on the page
+app.loadDataOnPage = function(){
+  // Get the current page from the body class
+  var bodyClasses = document.querySelector("body").classList;
+  var primaryClass = typeof(bodyClasses[0]) == 'string' ? bodyClasses[0] : false;
+
+  // Logic for account settings page
+  if(primaryClass == 'accountEdit'){
+    app.loadAccountEditPage();
+  }
+};
+
+// Load the account edit page specifically
+app.loadAccountEditPage = function(){
+  // Get the phone number from the current token, or log the user out if none is there
+  var phone = typeof(app.config.sessionToken.phone) == 'string' ? app.config.sessionToken.phone : false;
+  if(phone){
+    // Fetch the user data
+    var queryStringObject = {
+      phone
+    };
+    app.client.request(undefined, 'api/users', 'GET', queryStringObject, undefined, function(statusCode, responsePayload){
+      if(statusCode == 200){
+        // Put the data into the forms as values where needed
+        document.querySelector("#accountEdit1 .firstNameInput").value = responsePayload.firstName;
+        document.querySelector("#accountEdit1 .lastNameInput").value = responsePayload.lastName;
+        document.querySelector("#accountEdit1 .displayPhoneInput").value = responsePayload.phone;
+
+        // Put the hidden phone field into both forms
+        var hiddenPhoneInputs = document.querySelectorAll("input.hiddenPhoneNumberInput");
+        for(var i = 0; i < hiddenPhoneInputs.length; i++){
+          hiddenPhoneInputs[i].value = responsePayload.phone;
+        }
+      } else{
+        // If the request comes back as something other than 200, log the user our (on the assumption that the api is temporarily down or the users token is bad)
+        app.logUserOut();
+      }
+    });
+  }else{
+    app.logUserOut();
+  }
+};
+
 // Loop to renew token often
 app.tokenRenewalLoop = function () {
   setInterval(function () {
@@ -301,7 +351,7 @@ app.tokenRenewalLoop = function () {
         console.log("Token renewed successfully @ " + Date.now());
       }
     });
-  }, 1000 * 60 * 10);
+  }, 1000 * 60);
 };
 
 // Init (bootstrapping)
@@ -318,6 +368,8 @@ app.init = function () {
   // Renew token
   app.tokenRenewalLoop();
 
+  // Load data on page
+  app.loadDataOnPage();
 };
 
 // Call the init processes after the window loads
