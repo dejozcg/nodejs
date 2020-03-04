@@ -140,8 +140,10 @@ app.bindForms = function () {
         var elements = this.elements;
         //console.log("ELEMENTS JE: " + elements);
         for (var i = 0; i < elements.length; i++) {
-          //console.log(elements[i]);
           if (elements[i].type !== 'submit') {
+            // Determine class of element and set value accordingly
+
+
             var valueOfElement = elements[i].type == 'checkbox' ? elements[i].checked : elements[i].value;
             if (elements[i].name == '_method') {
               method = valueOfElement;
@@ -150,6 +152,36 @@ app.bindForms = function () {
             }
           }
         }
+
+
+        // for (var i = 0; i < elements.length; i++) {
+        //   if (elements[i].type !== 'submit') {
+        //     // Determine class of element and set value accordingly
+        //     var classOfElement = typeof (elements[i].classList.value) == 'string' && elements[i].classList.value.length > 0 ? elements[i].classList.value : '';
+        //     var valueOfElement = elements[i].type == 'checkbox' && classOfElement.indexOf('multiselect') == -1 ? elements[i].checked : classOfElement.indexOf('intval') == -1 ? elements[i].value : parseInt(elements[i].value);
+        //     var elementIsChecked = elements[i].checked;
+        //     // Override the method of the form if the input's name is _method
+        //     var nameOfElement = elements[i].name;
+        //     if (nameOfElement == '_method') {
+        //       method = valueOfElement;
+        //     } else {
+        //       // Create an payload field named "method" if the elements name is actually httpmethod
+        //       if (nameOfElement == 'httpmethod') {
+        //         nameOfElement = 'method';
+        //       }
+        //       // If the element has the class "multiselect" add its value(s) as array elements
+        //       if (classOfElement.indexOf('multiselect') > -1) {
+        //         if (elementIsChecked) {
+        //           payload[nameOfElement] = typeof (payload[nameOfElement]) == 'object' && payload[nameOfElement] instanceof Array ? payload[nameOfElement] : [];
+        //           payload[nameOfElement].push(valueOfElement);
+        //         }
+        //       } else {
+        //         payload[nameOfElement] = valueOfElement;
+        //       }
+
+        //     }
+        //   }
+        // }
 
         // Call the API
         app.client.request(undefined, path, method, undefined, payloads, function (statusCode, responsePayload) {
@@ -219,6 +251,21 @@ app.formResponseProcessor = function (formId, requestPayload, responsePayload) {
   var formWithSuccessMessages = ['accountEdit1', 'accountEdit2'];
   if (formWithSuccessMessages.indexOf(formId) > -1) {
     document.querySelector('#' + formId + " .formSuccess").style.display = 'block';
+  }
+
+  // If the user just deleted their account, redirect them to the account-delete page
+  if (formId == 'accountEdit3') {
+    app.logUserOut(false);
+    window.location = '/account/deleted';
+  }
+
+  // If the user just created a new check successfully, redirect back to the dashboard
+  if (formId == 'checksCreate') {
+    window.location = '/checks/create';
+  }
+  // If the user just created a new check successfully, redirect back to the dashboard
+  if (formId == 'checksCreate') {
+    window.location = '/checks/all';
   }
 };
 
@@ -301,28 +348,28 @@ app.renewToken = function (callback) {
 };
 
 // Load data on the page
-app.loadDataOnPage = function(){
+app.loadDataOnPage = function () {
   // Get the current page from the body class
   var bodyClasses = document.querySelector("body").classList;
-  var primaryClass = typeof(bodyClasses[0]) == 'string' ? bodyClasses[0] : false;
+  var primaryClass = typeof (bodyClasses[0]) == 'string' ? bodyClasses[0] : false;
 
   // Logic for account settings page
-  if(primaryClass == 'accountEdit'){
+  if (primaryClass == 'accountEdit') {
     app.loadAccountEditPage();
   }
 };
 
 // Load the account edit page specifically
-app.loadAccountEditPage = function(){
+app.loadAccountEditPage = function () {
   // Get the phone number from the current token, or log the user out if none is there
-  var phone = typeof(app.config.sessionToken.phone) == 'string' ? app.config.sessionToken.phone : false;
-  if(phone){
+  var phone = typeof (app.config.sessionToken.phone) == 'string' ? app.config.sessionToken.phone : false;
+  if (phone) {
     // Fetch the user data
     var queryStringObject = {
       phone
     };
-    app.client.request(undefined, 'api/users', 'GET', queryStringObject, undefined, function(statusCode, responsePayload){
-      if(statusCode == 200){
+    app.client.request(undefined, 'api/users', 'GET', queryStringObject, undefined, function (statusCode, responsePayload) {
+      if (statusCode == 200) {
         // Put the data into the forms as values where needed
         document.querySelector("#accountEdit1 .firstNameInput").value = responsePayload.firstName;
         document.querySelector("#accountEdit1 .lastNameInput").value = responsePayload.lastName;
@@ -330,15 +377,15 @@ app.loadAccountEditPage = function(){
 
         // Put the hidden phone field into both forms
         var hiddenPhoneInputs = document.querySelectorAll("input.hiddenPhoneNumberInput");
-        for(var i = 0; i < hiddenPhoneInputs.length; i++){
+        for (var i = 0; i < hiddenPhoneInputs.length; i++) {
           hiddenPhoneInputs[i].value = responsePayload.phone;
         }
-      } else{
+      } else {
         // If the request comes back as something other than 200, log the user our (on the assumption that the api is temporarily down or the users token is bad)
         app.logUserOut();
       }
     });
-  }else{
+  } else {
     app.logUserOut();
   }
 };
