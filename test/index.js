@@ -18,7 +18,7 @@ _app.tests = {
 // Assert that the getANumber function is returning a number
 _app.tests.unit['helpers.getANumber should return a number'] = function(done){
   var val = helpers.getANumber();
-  assert.equal(typeof(val),'number')č
+  assert.equal(typeof(val),'number');
   done();
 };
 
@@ -43,7 +43,7 @@ _app.runTest = function(){
   var limit = _app.countTests();
   var cuounter = 0;
   for(var key in _app.tests){
-    
+
   }
 };
 
