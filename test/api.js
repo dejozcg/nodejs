@@ -29,20 +29,13 @@ helpers.makeGetRequest = function(path,callback){
 
     // Send the request
     var req = http.request(requestDetails,function(res){
-        callback(res);   //                                         ovo probati da prikazem u console
+        callback(res);
     });
-    req.end;
+    req.end();
 };
 
 // The main init() function should be able to run without throwing.
-
-
-
-
-
-
-// The main init() function should be able to run without throwing.
-api['app.init should start without throwing'] = function(done){
+api['app.init should start without throwing.'] = function(done){
   assert.doesNotThrow(function(){
     app.init(function(err){
       done();
@@ -63,14 +56,13 @@ api['/api/users should respond to GET with 400'] = function(done){
   helpers.makeGetRequest('/api/users',function(res){
     assert.equal(res.statusCode,400);
     done();
-  });
+  })
 };
 
 // Make a request to a random path
 api['A random path should respond to GET with 404'] = function(done){
-  helpers.makeGetRequest('/this/path/shouldnt/exist',function(res){
-    assert.equal(res.statusCode,404);
-    done();
+  helpers.makeGetRequest('This is a random path',function(res){
+    assert(res.statusCode,404);
   });
 };
 

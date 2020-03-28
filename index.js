@@ -11,7 +11,7 @@ var cli = require('./lib/cli');
 var app = {};
 
 // Init function
-app.init = function(callback){      //                    Ovo callback da probam da logujem
+app.init = function(callback){
     // Start the server
     server.init();
 
@@ -21,7 +21,7 @@ app.init = function(callback){      //                    Ovo callback da probam
     // Start the CLI, but make sure it starts last
     setTimeout(function(){
         cli.init();
-        callback();              //                    Ovo callback da probam da logujem
+        callback();
     },50);
 };
 
